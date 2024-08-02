@@ -13,15 +13,18 @@ const trackElement = (trackData) => {
   `)
 }
 
-const tracksElement = (tracksArray) => { 
+const tracksElement = (tracksArray) => {
   return tracksArray.map(track => trackElement(track)).join("");
 }
 
+const albumDivElement = (content) => {
+  return `<div class="album">${content}</div>`;
+}
 
 const albumElement = (albumData) => {
   const tracksHtml = tracksElement(albumData.details);
 
-  return divElement(`
+  return albumDivElement(`
       <h2>${albumData.id}</h2>
       <h3>price: ${albumData.price}</h3>
       <p class="album-name">album name: ${albumData.name}</p>
@@ -53,10 +56,13 @@ const loadEvent = function () {
   ) */
   // console.log(albumsGroupedByVendorName)
 
-  albumsGroupedByVendorName = products.reduce((acc, curr) => {
-    acc[curr.vendor.name] ? acc[curr.vendor.name].push(curr) : acc[curr.vendor.name] = [curr]
-    return acc
-  }, {})
+  albumsGroupedByVendorName = products
+    .filter(album => album.price >= 1000)
+    .sort((a, b) => a.price - b.price)
+    .reduce((acc, curr) => {
+      acc[curr.vendor.name] ? acc[curr.vendor.name].push(curr) : acc[curr.vendor.name] = [curr]
+      return acc
+    }, {})
 
   /* const vendorNames = Object.keys(albumsGroupedByVendorName);
   vendorNames.forEach(vendorName => {
@@ -65,19 +71,32 @@ const loadEvent = function () {
     })
   }) */
 
-  for (const key in albumsGroupedByVendorName) {
-    albumsGroupedByVendorName[key].forEach(album => {
-      console.log(key, album)
-    })
+  const rootElement = document.querySelector("#root");
+
+  for (const vendorName in albumsGroupedByVendorName) {
+    // console.log(albumsGroupedByVendorName[vendorName])
+    const vendorAlbumsHtml = albumsGroupedByVendorName[vendorName]
+      .map(album => albumElement(album))
+      .join("");
+
+    const vendorHtml = `
+      <section>
+        <h2>${vendorName}</h2>
+        <div class="albums">
+          ${vendorAlbumsHtml}
+        </div>
+      </section>
+    `;
+
+    rootElement.insertAdjacentHTML("beforeend", vendorHtml);
   }
 
-  const rootElement = document.querySelector("#root");
-  const albumsHtml = products
+  /* const albumsHtml = products
     .filter(album => album.price >= 1000)
     .sort((a, b) => a.price - b.price)
     .map(album => albumElement(album))
     .join("");
-  rootElement.insertAdjacentHTML("beforeend", albumsHtml);
+  rootElement.insertAdjacentHTML("beforeend", albumsHtml); */
 }
 
 window.addEventListener("load", loadEvent);
